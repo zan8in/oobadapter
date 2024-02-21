@@ -23,8 +23,8 @@ func main() {
 	}
 
 	oob := oobadapter.NewOOBAdapter("ceye", &oobadapter.ConnectorParams{
-		Key:    "bba3368c28118247ddc4785630b8fca0",
-		Domain: "7gn2sm.ceye.io",
+		Key:    "bba336xxxxx0b8fca0",
+		Domain: "7xxxsm.ceye.io",
 	})
 
 	// 获取验证域名

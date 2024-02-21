@@ -17,14 +17,11 @@ import (
 )
 
 func main() {
-	err := retryhttp.Init(&retryhttp.Options{})
-	if err != nil {
-		return
-	}
 
+	// 初始化 OOB 对象，设置 ceye 配置
 	oob := oobadapter.NewOOBAdapter("ceye", &oobadapter.ConnectorParams{
-		Key:    "bba336xxxxx0b8fca0",
-		Domain: "7xxxsm.ceye.io",
+		Key:    "bba3368c28118247ddc4785630b8fca0",
+		Domain: "7gn2sm.ceye.io",
 	})
 
 	// 获取验证域名
@@ -32,7 +29,7 @@ func main() {
 
 	fmt.Println("GetValidationDomain: ", domains)
 
-	// 模拟 dnslog 请求
+	// 模拟 dnslog 请求（正式环境无需请求）
 	status, body := retryhttp.Get(domains.HTTP)
 	fmt.Println(status, string(body))
 

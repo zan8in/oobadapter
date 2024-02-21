@@ -1,6 +1,17 @@
 package oobadapter
 
-// TODO: implement OOB adapter
+import (
+	"fmt"
+
+	"github.com/zan8in/oobadapter/pkg/retryhttp"
+)
+
+func init() {
+	if err := retryhttp.Init(&retryhttp.Options{}); err != nil {
+		fmt.Println("retryhttp init error: ", err)
+	}
+}
+
 var (
 	OOBHTTP = "http"
 	OOBDNS  = "dns"

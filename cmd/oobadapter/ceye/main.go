@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-	// TODO: implement OOB adapter
 	err := retryhttp.Init(&retryhttp.Options{})
 	if err != nil {
 		return
@@ -19,13 +18,16 @@ func main() {
 		Domain: "7gn2sm.ceye.io",
 	})
 
+	// 获取验证域名
 	domains := oob.GetValidationDomain()
 
 	fmt.Println("GetValidationDomain: ", domains)
 
+	// 模拟 dnslog 请求
 	status, body := retryhttp.Get(domains.HTTP)
 	fmt.Println(status, string(body))
 
+	// 获取验证结果
 	result := oob.ValidateResult(oobadapter.ValidateParams{
 		Filter:     domains.Filter,
 		FilterType: oobadapter.OOBJNDI,

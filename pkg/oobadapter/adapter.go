@@ -36,6 +36,18 @@ func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, err
 			Params:      params,
 			DnsLogModel: ceye,
 		}, nil
+	case DnslogcnName:
+		dnslogcn, err := NewDnslogcnConnector(&ConnectorParams{
+			Domain: params.Domain,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &OOBAdapter{
+			DnsLogType:  dnslogType,
+			Params:      params,
+			DnsLogModel: dnslogcn,
+		}, nil
 	default:
 		return nil, fmt.Errorf("new oobadapter failed")
 	}
@@ -45,6 +57,8 @@ func (o *OOBAdapter) GetValidationDomain() ValidationDomains {
 	switch o.DnsLogType {
 	case CeyeName:
 		return o.DnsLogModel.(*CeyeConnector).GetValidationDomain()
+	case DnslogcnName:
+		return o.DnsLogModel.(*DnslogcnConnector).GetValidationDomain()
 	default:
 		return ValidationDomains{}
 	}
@@ -55,6 +69,9 @@ func (o *OOBAdapter) ValidateResult(params ValidateParams) Result {
 	case CeyeName:
 		ceye := o.DnsLogModel.(*CeyeConnector)
 		return ceye.ValidateResult(params)
+	case DnslogcnName:
+		dnslogcn := o.DnsLogModel.(*DnslogcnConnector)
+		return dnslogcn.ValidateResult(params)
 	default:
 		return Result{
 			IsVaild:    false,

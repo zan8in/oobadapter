@@ -34,7 +34,7 @@ func (c *CeyeConnector) GetValidationDomain() ValidationDomains {
 }
 
 func (c *CeyeConnector) ValidateResult(params ValidateParams) Result {
-	switch filterType(params.FilterType) {
+	switch c.GetFilterType(params.FilterType) {
 	case CeyeDNS:
 		return c.validate(params)
 	case CeyeHTTP:
@@ -50,8 +50,7 @@ func (c *CeyeConnector) ValidateResult(params ValidateParams) Result {
 }
 
 func (c *CeyeConnector) validate(params ValidateParams) Result {
-	url := fmt.Sprintf("http://api.ceye.io/v1/records?token=%s&type=%s&filter=%s", c.Token, filterType(params.FilterType), params.Filter)
-	fmt.Println(url)
+	url := fmt.Sprintf("http://api.ceye.io/v1/records?token=%s&type=%s&filter=%s", c.Token, c.GetFilterType(params.FilterType), params.Filter)
 	status, body := retryhttp.Get(url)
 	if status != 0 {
 		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter+".")) {
@@ -79,7 +78,7 @@ func NewCeyeConnector(params *ConnectorParams) *CeyeConnector {
 	}
 }
 
-func filterType(t string) string {
+func (c *CeyeConnector) GetFilterType(t string) string {
 	switch t {
 	case OOBHTTP:
 		return CeyeHTTP

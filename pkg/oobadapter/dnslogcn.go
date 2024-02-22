@@ -3,6 +3,7 @@ package oobadapter
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/zan8in/oobadapter/pkg/retryhttp"
@@ -10,37 +11,87 @@ import (
 )
 
 var (
-	DnslogcnSubLength = 10
+	DnslogcnName      = "dnslogcn"
+	DnslogcnDNS       = "dns"
+	DnslogcnHTTP      = "http"
+	DnslogcnSubLength = 6
 )
 
 // http://dnslog.cn/getdomain.php?t=0.12843715100488828
 // http://dnslog.cn/getrecords.php?t=0.12843715100488828
 type DnslogcnConnector struct {
-	Token  string // your ceye api token.
-	Domain string // your ceye identifier.
-	Filter string // match url name rule, the filter max length is 20.
+	Domain         string // your dnslog identifier.
+	DnslogcnFilter string // match url name rule, the filter max length is 20.
+	Cookie         string
 }
 
-func NewDnslogcnConnector(params *ConnectorParams) *DnslogcnConnector {
-	status, body := retryhttp.Get(fmt.Sprintf("http://dnslog.cn/getdomain.php?t=0.%d", time.Now().UnixNano()))
-	if status != 0 && bytes.Contains(body, []byte(params.Domain)) {
+func NewDnslogcnConnector(params *ConnectorParams) (*DnslogcnConnector, error) {
+	status, cookie, body := retryhttp.GetWithCookie(fmt.Sprintf("http://dnslog.cn/getdomain.php?t=0.%d", time.Now().UnixNano()))
+
+	if status != 0 && bytes.Contains(body, []byte("."+params.Domain)) {
 		return &DnslogcnConnector{
-			Domain: params.Domain,
-			Filter: string(body),
-		}
+			Domain:         params.Domain,
+			DnslogcnFilter: string(bytes.TrimSpace(body)),
+			Cookie:         cookie,
+		}, nil
 	}
-	return &DnslogcnConnector{
-		Token:  params.Key,
-		Domain: params.Domain,
-	}
+	return nil, fmt.Errorf("new dnslogcnconnector failed")
 }
 
 func (c *DnslogcnConnector) GetValidationDomain() ValidationDomains {
-	filter := randutil.Randcase(DnslogcnSubLength)
+	filter := fmt.Sprintf("%s.%s", randutil.Randcase(DnslogcnSubLength), c.DnslogcnFilter)
 	validationDomain := ValidationDomains{
-		HTTP: fmt.Sprintf("http://%s.%s", filter, c.Domain),
-		DNS:  fmt.Sprintf("%s.%s", filter, c.Domain),
-		JNDI: fmt.Sprintf("%s.%s", filter, c.Domain),
+		HTTP: fmt.Sprintf("http://%s", filter),
+		DNS:  filter,
+		JNDI: filter,
 	}
 	return validationDomain
+}
+
+func (c *DnslogcnConnector) ValidateResult(params ValidateParams) Result {
+	switch c.GetFilterType(params.FilterType) {
+	case DnslogcnDNS:
+		return c.validate(params)
+	case DnslogcnHTTP:
+		return c.validate(params)
+	default:
+		return Result{
+			IsVaild:    false,
+			DnslogType: DnslogcnName,
+			FilterType: params.FilterType,
+			Body:       "unknown filter type",
+		}
+	}
+}
+
+func (c *DnslogcnConnector) validate(params ValidateParams) Result {
+	url := fmt.Sprintf("http://dnslog.cn/getrecords.php?t=0.%d", time.Now().UnixNano())
+	status, body := retryhttp.GetByCookie(url, c.Cookie)
+	if status != 0 {
+		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter+".")) {
+			return Result{
+				IsVaild:    true,
+				DnslogType: DnslogcnName,
+				FilterType: params.FilterType,
+				Body:       string(body),
+			}
+		}
+	}
+	return Result{
+		IsVaild:    false,
+		DnslogType: DnslogcnName,
+		FilterType: params.FilterType,
+		Body:       string(body),
+	}
+}
+
+func (c *DnslogcnConnector) GetFilterType(t string) string {
+	switch t {
+	case OOBHTTP:
+		return DnslogcnDNS
+	case OOBDNS:
+		return DnslogcnDNS
+	default:
+		return DnslogcnDNS
+	}
 }

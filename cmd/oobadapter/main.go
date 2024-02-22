@@ -14,10 +14,14 @@ func main() {
 		return
 	}
 
-	oob := oobadapter.NewOOBAdapter("ceye", &oobadapter.ConnectorParams{
+	oob, err := oobadapter.NewOOBAdapter("ceye", &oobadapter.ConnectorParams{
 		Key:    "bba3368c28118247ddc4785630b8fca0",
 		Domain: "7gn2sm.ceye.io",
 	})
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
 	domains := oob.GetValidationDomain()
 
@@ -27,7 +31,7 @@ func main() {
 	fmt.Println(status, string(body))
 
 	result := oob.ValidateResult(oobadapter.ValidateParams{
-		Filter:     domains.Filter,
+		Filter:     domains.JNDI,
 		FilterType: oobadapter.OOBJNDI,
 	})
 

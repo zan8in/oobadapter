@@ -24,36 +24,43 @@ type OOBAdapter struct {
 	DnsLogModel interface{}
 }
 
-func NewOOBAdapter(dnslogType string, params *ConnectorParams) *OOBAdapter {
-	return &OOBAdapter{
-		DnsLogType: dnslogType,
-		Params:     params,
+func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, error) {
+	switch dnslogType {
+	case CeyeName:
+		ceye := NewCeyeConnector(&ConnectorParams{
+			Key:    params.Key,
+			Domain: params.Domain,
+		})
+		return &OOBAdapter{
+			DnsLogType:  dnslogType,
+			Params:      params,
+			DnsLogModel: ceye,
+		}, nil
+	default:
+		return nil, fmt.Errorf("new oobadapter failed")
 	}
 }
 
 func (o *OOBAdapter) GetValidationDomain() ValidationDomains {
 	switch o.DnsLogType {
 	case CeyeName:
-		ceye := NewCeyeConnector(&ConnectorParams{
-			Key:    o.Params.Key,
-			Domain: o.Params.Domain,
-		})
-		o.DnsLogModel = ceye
-		return ceye.GetValidationDomain()
+		return o.DnsLogModel.(*CeyeConnector).GetValidationDomain()
 	default:
 		return ValidationDomains{}
 	}
 }
 
-func (o *OOBAdapter) ValidateResult(params ValidateParams) bool {
+func (o *OOBAdapter) ValidateResult(params ValidateParams) Result {
 	switch o.DnsLogType {
 	case CeyeName:
 		ceye := o.DnsLogModel.(*CeyeConnector)
-		return ceye.ValidateResult(ValidateParams{
-			Filter:     ceye.Filter,
-			FilterType: ceye.FilterType(params.FilterType),
-		})
+		return ceye.ValidateResult(params)
 	default:
-		return false
+		return Result{
+			IsVaild:    false,
+			DnslogType: o.DnsLogType,
+			FilterType: params.FilterType,
+			Body:       "unknown filter type",
+		}
 	}
 }

@@ -19,10 +19,14 @@ import (
 func main() {
 
 	// 初始化 OOB 对象，设置 ceye 配置
-	oob := oobadapter.NewOOBAdapter("ceye", &oobadapter.ConnectorParams{
-		Key:    "bba3368c28118247ddc4785630b8fca0",
-		Domain: "7gn2sm.ceye.io",
+	oob, err := oobadapter.NewOOBAdapter("ceye", &oobadapter.ConnectorParams{
+		Key:    "bba33xxxb8fca0",
+		Domain: "7gxxm.ceye.io",
 	})
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
 	// 获取验证域名
 	domains := oob.GetValidationDomain()
@@ -30,16 +34,16 @@ func main() {
 	fmt.Println("GetValidationDomain: ", domains)
 
 	// 模拟 dnslog 请求（正式环境无需请求）
-	status, body := retryhttp.Get(domains.HTTP)
-	fmt.Println(status, string(body))
+	retryhttp.Get(domains.HTTP)
+	// fmt.Println(status, string(body))
 
 	// 获取验证结果
 	result := oob.ValidateResult(oobadapter.ValidateParams{
 		Filter:     domains.Filter,
-		FilterType: oobadapter.OOBJNDI,
+		FilterType: oobadapter.OOBDNS,
 	})
 
-	fmt.Println("GetResult: ", result)
+	fmt.Println("GetResult: ", result.IsVaild, result.FilterType, result.Body)
 
 }
 

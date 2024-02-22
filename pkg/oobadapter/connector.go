@@ -30,6 +30,6 @@ type Connector interface {
 
 type ConnectorParams struct {
 	Key    string // 密钥
-	Domain string // 域名
-	Scheme string // 协议，比如：http或https
+	Domain string // 域名，比如：xxx.yourdomain.com
+	ApiUrl string // api 地址，用于自搭建oob服务，比如：http://xxx.yourdomain.com
 }

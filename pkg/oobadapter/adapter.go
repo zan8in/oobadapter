@@ -27,15 +27,18 @@ type OOBAdapter struct {
 }
 
 func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, error) {
-	if len(params.Scheme) == 0 {
-		params.Scheme = "http"
+	if len(params.Domain) == 0 {
+		return nil, fmt.Errorf("new OOBAdapter failed, Domain is empty")
+	}
+	if len(params.ApiUrl) == 0 {
+		params.ApiUrl = "http://" + params.Domain
 	}
 	switch dnslogType {
 	case CeyeName:
 		ceye := NewCeyeConnector(&ConnectorParams{
 			Key:    params.Key,
 			Domain: params.Domain,
-			Scheme: params.Scheme,
+			ApiUrl: params.ApiUrl,
 		})
 		return &OOBAdapter{
 			DnsLogType:  dnslogType,
@@ -45,7 +48,7 @@ func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, err
 	case DnslogcnName:
 		dnslogcn, err := NewDnslogcnConnector(&ConnectorParams{
 			Domain: params.Domain,
-			Scheme: params.Scheme,
+			ApiUrl: params.ApiUrl,
 		})
 		if err != nil {
 			return nil, err
@@ -59,7 +62,7 @@ func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, err
 		alphalog, err := NewAlphalogConnector(&ConnectorParams{
 			Key:    params.Key,
 			Domain: params.Domain,
-			Scheme: params.Scheme,
+			ApiUrl: params.ApiUrl,
 		})
 		if err != nil {
 			return nil, err

@@ -13,7 +13,7 @@ func main() {
 	// 初始化 OOB 对象，设置 dnslog 配置
 	oob, err := oobadapter.NewOOBAdapter("alphalog", &oobadapter.ConnectorParams{
 		Domain: "dnslogus.top",
-		Scheme: "http",
+		ApiUrl: "http://dnslogus.top/",
 	})
 	if err != nil {
 		fmt.Println(err.Error())

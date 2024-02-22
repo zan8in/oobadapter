@@ -23,7 +23,7 @@ var (
 type AlphalogConnector struct {
 	Token    string // your Alphalog api token.
 	Domain   string // your Alphalog identifier.
-	Scheme   string // http or https
+	ApiUrl   string // http or https
 	Alphalog Alphalog
 }
 
@@ -35,9 +35,8 @@ type Alphalog struct {
 }
 
 func NewAlphalogConnector(params *ConnectorParams) (*AlphalogConnector, error) {
-	status, body := retryhttp.Get(fmt.Sprintf("%s://%s/get", params.Scheme, params.Domain))
-	fmt.Println(fmt.Sprintf("%s://%s/get", params.Scheme, params.Domain))
-	fmt.Println(status, string(body))
+	apiurl := strings.TrimRight(params.ApiUrl, "/")
+	status, body := retryhttp.Get(fmt.Sprintf("%s/get", apiurl))
 	if status == 0 {
 		return nil, fmt.Errorf("new AlphalogConnector failed")
 	}
@@ -50,7 +49,7 @@ func NewAlphalogConnector(params *ConnectorParams) (*AlphalogConnector, error) {
 	if len(alog.Key) > 0 && len(alog.Subdomain) > 0 {
 		return &AlphalogConnector{
 			Domain:   params.Domain,
-			Scheme:   params.Scheme,
+			ApiUrl:   apiurl,
 			Token:    alog.Key,
 			Alphalog: alog,
 		}, nil
@@ -72,25 +71,11 @@ func (c *AlphalogConnector) GetValidationDomain() ValidationDomains {
 }
 
 func (c *AlphalogConnector) ValidateResult(params ValidateParams) Result {
-	// switch c.GetFilterType(params.FilterType) {
-	// case DnslogcnDNS:
-	// 	return c.validate(params)
-	// case DnslogcnHTTP:
-	// 	return c.validate(params)
-	// default:
-	// 	return Result{
-	// 		IsVaild:    false,
-	// 		DnslogType: AlphalogName,
-	// 		FilterType: params.FilterType,
-	// 		Body:       "unknown filter type",
-	// 	}
-	// }
 	return c.validate(params)
 }
 
 func (c *AlphalogConnector) validate(params ValidateParams) Result {
-	url := fmt.Sprintf("%s://%s", c.Scheme, c.Domain)
-	status, body := retryhttp.Post(url, "key="+c.Token, "")
+	status, body := retryhttp.Post(c.ApiUrl, "key="+c.Token, "")
 	if status != 0 {
 		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter+".")) {
 			return Result{

@@ -10,7 +10,7 @@ import (
 func main() {
 
 	// 初始化 OOB 对象，设置 ceye 配置
-	oob, err := oobadapter.NewOOBAdapter("ceye", &oobadapter.ConnectorParams{
+	oob, err := oobadapter.NewOOBAdapter("ceyeio", &oobadapter.ConnectorParams{
 		Key:    "bba3368c28118247ddc4785630b8fca0",
 		Domain: "7gn2sm.ceye.io",
 	})

@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	CeyeName      = "ceye"
+	CeyeName      = "ceyeio"
 	CeyeDNS       = "dns"
 	CeyeHTTP      = "http"
 	CeyeSubLength = 8

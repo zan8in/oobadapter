@@ -6,6 +6,8 @@ type ValidationDomains struct {
 	HTTP   string // http 格式，比如：http://filterxxx.yyy.ceye.io
 	DNS    string // dnslog 格式，比如：filterxxx.yyy.ceye.io
 	JNDI   string // j3ndi 格式，比如：filterxxx.yyy.ceye.io
+	RMI    string // rmi 格式，比如：rmi://jndi.x.x.0.x:5/1rpe
+	LDAP   string // ldap 格式，比如：ldap://jndi.x.x.0.x:5/1rpe
 }
 
 type ValidateParams struct {
@@ -28,5 +30,6 @@ type Connector interface {
 
 type ConnectorParams struct {
 	Key    string // 密钥
-	Domain string // 子域名
+	Domain string // 域名
+	Scheme string // 协议，比如：http或https
 }

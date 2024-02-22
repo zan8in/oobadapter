@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	randutil "github.com/zan8in/pins/rand"
@@ -161,4 +162,42 @@ func GetWithCookie(target string) (int, string, []byte) {
 	resp.Body.Close()
 
 	return resp.StatusCode, resp.Header.Get("Set-Cookie"), respBody
+}
+
+func Post(target, body, contentType string) (int, []byte) {
+	if len(target) == 0 {
+		return 0, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodPost, target, strings.NewReader(body))
+	if err != nil {
+		return 0, nil
+	}
+
+	req.Header.Add("User-Agent", randutil.RandomUA())
+
+	if len(contentType) == 0 {
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	}
+
+	resp, err := Client.Do(req)
+	if err != nil {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return 0, nil
+	}
+
+	reader := io.LimitReader(resp.Body, maxDefaultBody)
+	respBody, err := io.ReadAll(reader)
+	if err != nil {
+		resp.Body.Close()
+		return 0, nil
+	}
+	resp.Body.Close()
+
+	return resp.StatusCode, respBody
 }

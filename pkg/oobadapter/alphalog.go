@@ -61,11 +61,12 @@ func NewAlphalogConnector(params *ConnectorParams) (*AlphalogConnector, error) {
 func (c *AlphalogConnector) GetValidationDomain() ValidationDomains {
 	filter := fmt.Sprintf("%s.%s", randutil.Randcase(AlphalogSubLength), c.Alphalog.Subdomain)
 	validationDomain := ValidationDomains{
-		HTTP: fmt.Sprintf("http://%s", filter),
-		DNS:  filter,
-		JNDI: fmt.Sprintf("%s/%s", c.Alphalog.Ldap, randutil.Randcase(AlphalogSubLength)),
-		RMI:  fmt.Sprintf("%s/%s", c.Alphalog.Rmi, randutil.Randcase(AlphalogSubLength)),
-		LDAP: fmt.Sprintf("%s/%s", c.Alphalog.Ldap, randutil.Randcase(AlphalogSubLength)),
+		HTTP:   fmt.Sprintf("http://%s", filter),
+		DNS:    filter,
+		JNDI:   fmt.Sprintf("%s/%s", c.Alphalog.Ldap, randutil.Randcase(AlphalogSubLength)),
+		RMI:    fmt.Sprintf("%s/%s", c.Alphalog.Rmi, randutil.Randcase(AlphalogSubLength)),
+		LDAP:   fmt.Sprintf("%s/%s", c.Alphalog.Ldap, randutil.Randcase(AlphalogSubLength)),
+		Filter: filter,
 	}
 	return validationDomain
 }
@@ -76,8 +77,9 @@ func (c *AlphalogConnector) ValidateResult(params ValidateParams) Result {
 
 func (c *AlphalogConnector) validate(params ValidateParams) Result {
 	status, body := retryhttp.Post(c.ApiUrl, "key="+c.Token, "")
+	fmt.Println("----------", params.Filter)
 	if status != 0 {
-		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter+".")) {
+		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter)) {
 			return Result{
 				IsVaild:    true,
 				DnslogType: AlphalogName,

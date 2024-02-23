@@ -22,6 +22,7 @@ func main() {
 
 	// 获取验证域名
 	domains := oob.GetValidationDomain()
+	fmt.Println("GetFilter: ", domains.Filter)
 
 	fmt.Println("GetValidationDomain: ", domains)
 

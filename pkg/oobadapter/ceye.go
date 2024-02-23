@@ -52,9 +52,8 @@ func (c *CeyeConnector) ValidateResult(params ValidateParams) Result {
 func (c *CeyeConnector) validate(params ValidateParams) Result {
 	url := fmt.Sprintf("http://api.ceye.io/v1/records?token=%s&type=%s&filter=%s", c.Token, c.GetFilterType(params.FilterType), params.Filter)
 	status, body := retryhttp.Get(url)
-	fmt.Println(params.Filter)
 	if status != 0 {
-		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter+".")) {
+		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter)) {
 			return Result{
 				IsVaild:    true,
 				DnslogType: CeyeName,

@@ -77,7 +77,6 @@ func (c *AlphalogConnector) ValidateResult(params ValidateParams) Result {
 
 func (c *AlphalogConnector) validate(params ValidateParams) Result {
 	status, body := retryhttp.Post(c.ApiUrl, "key="+c.Token, "")
-	fmt.Println("----------", params.Filter)
 	if status != 0 {
 		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter)) {
 			return Result{

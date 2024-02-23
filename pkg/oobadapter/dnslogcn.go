@@ -68,7 +68,6 @@ func (c *DnslogcnConnector) ValidateResult(params ValidateParams) Result {
 func (c *DnslogcnConnector) validate(params ValidateParams) Result {
 	url := fmt.Sprintf("http://dnslog.cn/getrecords.php?t=0.%d", time.Now().UnixNano())
 	status, body := retryhttp.GetByCookie(url, c.Cookie)
-	fmt.Println("=======", params.Filter)
 	if status != 0 {
 		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter)) {
 			return Result{

@@ -14,7 +14,7 @@ import (
 var (
 	Client         *retryablehttp.Client
 	ClientRedirect *retryablehttp.Client
-	defaultTimeout = 20 * time.Second
+	defaultTimeout = 30 * time.Second
 	maxDefaultBody int64
 )
 
@@ -30,7 +30,7 @@ func Init(options *Options) (err error) {
 		options = &Options{}
 	}
 	if options.Timeout == 0 {
-		options.Timeout = 10
+		options.Timeout = 30
 	}
 	if options.Retries == 0 {
 		options.Retries = 3

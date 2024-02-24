@@ -72,6 +72,20 @@ func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, err
 			Params:      params,
 			DnsLogModel: alphalog,
 		}, nil
+	case XrayName:
+		xray, err := NewXrayConnector(&ConnectorParams{
+			Key:    params.Key,
+			Domain: params.Domain,
+			ApiUrl: params.ApiUrl,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &OOBAdapter{
+			DnsLogType:  dnslogType,
+			Params:      params,
+			DnsLogModel: xray,
+		}, nil
 	default:
 		return nil, fmt.Errorf("new oobadapter failed")
 	}
@@ -85,6 +99,8 @@ func (o *OOBAdapter) GetValidationDomain() ValidationDomains {
 		return o.DnsLogModel.(*DnslogcnConnector).GetValidationDomain()
 	case AlphalogName:
 		return o.DnsLogModel.(*AlphalogConnector).GetValidationDomain()
+	case XrayName:
+		return o.DnsLogModel.(*XrayConnector).GetValidationDomain()
 	default:
 		return ValidationDomains{}
 	}
@@ -101,6 +117,9 @@ func (o *OOBAdapter) ValidateResult(params ValidateParams) Result {
 	case AlphalogName:
 		alphalog := o.DnsLogModel.(*AlphalogConnector)
 		return alphalog.ValidateResult(params)
+	case XrayName:
+		xray := o.DnsLogModel.(*XrayConnector)
+		return xray.ValidateResult(params)
 	default:
 		return Result{
 			IsVaild:    false,

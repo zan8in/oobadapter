@@ -164,6 +164,44 @@ func GetWithCookie(target string) (int, string, []byte) {
 	return resp.StatusCode, resp.Header.Get("Set-Cookie"), respBody
 }
 
+func GetWithHeader(target string, headers map[string]string) (int, []byte) {
+	if len(target) == 0 {
+		return 0, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, target, nil)
+	if err != nil {
+		return 0, nil
+	}
+
+	req.Header.Add("User-Agent", randutil.RandomUA())
+
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+
+	resp, err := Client.Do(req)
+	if err != nil {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return 0, nil
+	}
+
+	reader := io.LimitReader(resp.Body, maxDefaultBody)
+	respBody, err := io.ReadAll(reader)
+	if err != nil {
+		resp.Body.Close()
+		return 0, nil
+	}
+	resp.Body.Close()
+
+	return resp.StatusCode, respBody
+}
+
 func Post(target, body, contentType string) (int, []byte) {
 	if len(target) == 0 {
 		return 0, nil

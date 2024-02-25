@@ -22,6 +22,13 @@ type CeyeConnector struct {
 	CeyeFilter string // match url name rule, the filter max length is 20.
 }
 
+func NewCeyeConnector(params *ConnectorParams) *CeyeConnector {
+	return &CeyeConnector{
+		Token:      params.Key,
+		Domain:     params.Domain,
+		CeyeFilter: randutil.Randcase(CeyeSubLength),
+	}
+}
 func (c *CeyeConnector) GetValidationDomain() ValidationDomains {
 	filter := fmt.Sprintf("%s.%s", randutil.Randcase(CeyeSubLength), c.CeyeFilter)
 	validationDomain := ValidationDomains{
@@ -70,12 +77,15 @@ func (c *CeyeConnector) validate(params ValidateParams) Result {
 	}
 }
 
-func NewCeyeConnector(params *ConnectorParams) *CeyeConnector {
-	return &CeyeConnector{
-		Token:      params.Key,
-		Domain:     params.Domain,
-		CeyeFilter: randutil.Randcase(CeyeSubLength),
+func (c *CeyeConnector) IsVaild() bool {
+	if status, body := retryhttp.Get(fmt.Sprintf("http://%s.%s", randutil.Randcase(6), c.Domain)); status == 0 {
+		return false
+	} else {
+		if strings.Contains(string(body), "\"meta\":") || strings.Contains(string(body), "201") {
+			return true
+		}
 	}
+	return false
 }
 
 func (c *CeyeConnector) GetFilterType(t string) string {

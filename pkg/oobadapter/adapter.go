@@ -2,6 +2,7 @@ package oobadapter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/zan8in/oobadapter/pkg/retryhttp"
 )
@@ -32,6 +33,8 @@ func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, err
 	}
 	if len(params.ApiUrl) == 0 {
 		params.ApiUrl = "http://" + params.Domain
+	} else {
+		params.ApiUrl = strings.TrimSuffix(params.ApiUrl, "/")
 	}
 	switch dnslogType {
 	case CeyeName:
@@ -127,5 +130,20 @@ func (o *OOBAdapter) ValidateResult(params ValidateParams) Result {
 			FilterType: params.FilterType,
 			Body:       "unknown filter type",
 		}
+	}
+}
+
+func (o *OOBAdapter) IsVaild() bool {
+	switch o.DnsLogType {
+	case CeyeName:
+		return o.DnsLogModel.(*CeyeConnector).IsVaild()
+	case DnslogcnName:
+		return o.DnsLogModel.(*DnslogcnConnector).IsVaild()
+	case AlphalogName:
+		return o.DnsLogModel.(*AlphalogConnector).IsVaild()
+	case XrayName:
+		return o.DnsLogModel.(*XrayConnector).IsVaild()
+	default:
+		return false
 	}
 }

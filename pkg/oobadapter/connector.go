@@ -25,6 +25,7 @@ type Result struct {
 type Connector interface {
 	GetValidationDomain() ValidationDomains
 	ValidateResult(params ValidateParams) Result
+	IsVaild() bool
 	GetFilterType(t string) string
 }
 

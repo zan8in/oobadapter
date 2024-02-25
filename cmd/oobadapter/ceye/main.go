@@ -19,6 +19,14 @@ func main() {
 		return
 	}
 
+	b := oob.IsVaild()
+	if b {
+		fmt.Println("Ceyeio IsVaild: ", b)
+	} else {
+		fmt.Println("Ceyeio IsVaild: ", b)
+		return
+	}
+
 	// 获取验证域名
 	domains := oob.GetValidationDomain()
 

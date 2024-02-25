@@ -18,6 +18,14 @@ func main() {
 		return
 	}
 
+	b := oob.IsVaild()
+	if b {
+		fmt.Println("Dnslogcn IsVaild: ", b)
+	} else {
+		fmt.Println("Dnslogcn IsVaild: ", b)
+		return
+	}
+
 	// 获取验证域名
 	domains := oob.GetValidationDomain()
 

@@ -20,6 +20,15 @@ func main() {
 		return
 	}
 
+	b := oob.IsVaild()
+	if b {
+		fmt.Println("Alphalog IsVaild: ", b)
+	} else {
+		fmt.Println("Alphalog IsVaild: ", b)
+		return
+	}
+	return
+
 	// 获取验证域名
 	domains := oob.GetValidationDomain()
 	fmt.Println("GetFilter: ", domains.Filter)

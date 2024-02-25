@@ -23,6 +23,7 @@ type DnslogcnConnector struct {
 	Domain         string // your dnslog identifier.
 	DnslogcnFilter string // match url name rule, the filter max length is 20.
 	Cookie         string
+	IsAlive        bool
 }
 
 func NewDnslogcnConnector(params *ConnectorParams) (*DnslogcnConnector, error) {
@@ -33,6 +34,7 @@ func NewDnslogcnConnector(params *ConnectorParams) (*DnslogcnConnector, error) {
 			Domain:         params.Domain,
 			DnslogcnFilter: string(bytes.TrimSpace(body)),
 			Cookie:         cookie,
+			IsAlive:        true,
 		}, nil
 	}
 	return nil, fmt.Errorf("new dnslogcnconnector failed")
@@ -95,4 +97,11 @@ func (c *DnslogcnConnector) GetFilterType(t string) string {
 	default:
 		return DnslogcnDNS
 	}
+}
+
+func (c *DnslogcnConnector) IsVaild() bool {
+	if c != nil {
+		return c.IsAlive
+	}
+	return false
 }

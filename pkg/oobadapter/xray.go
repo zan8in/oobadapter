@@ -26,6 +26,7 @@ type XrayConnector struct {
 	ApiUrl        string // http or https
 	XrayHTTP      *Xray
 	XrayDNS       *Xray
+	IsAlive       bool
 }
 
 /*
@@ -102,6 +103,7 @@ func NewXrayConnector(params *ConnectorParams) (*XrayConnector, error) {
 			XrayHTTP:      xrayHttp,
 			XrayDNS:       xrayDns,
 			ApiUrl:        params.ApiUrl,
+			IsAlive:       true,
 		}, nil
 	}
 	return nil, fmt.Errorf("new XrayConnector failed")
@@ -193,4 +195,11 @@ func getXrayHttpSuffix(str string) string {
 		return strings.TrimSuffix("/p/"+r[1], "/")
 	}
 	return ""
+}
+
+func (c *XrayConnector) IsVaild() bool {
+	if c != nil {
+		return c.IsAlive
+	}
+	return false
 }

@@ -25,6 +25,7 @@ type AlphalogConnector struct {
 	Domain   string // your Alphalog identifier.
 	ApiUrl   string // http or https
 	Alphalog Alphalog
+	IsAlive  bool
 }
 
 type Alphalog struct {
@@ -52,6 +53,7 @@ func NewAlphalogConnector(params *ConnectorParams) (*AlphalogConnector, error) {
 			ApiUrl:   apiurl,
 			Token:    alog.Key,
 			Alphalog: alog,
+			IsAlive:  true,
 		}, nil
 	}
 
@@ -110,4 +112,10 @@ func (c *AlphalogConnector) GetFilterType(t string) string {
 	default:
 		return AlphalogDNS
 	}
+}
+func (c *AlphalogConnector) IsVaild() bool {
+	if c != nil {
+		return c.IsAlive
+	}
+	return false
 }

@@ -14,11 +14,19 @@ func main() {
 	// 初始化 OOB 对象，设置 dnslog 配置
 	oob, err := oobadapter.NewOOBAdapter("xray", &oobadapter.ConnectorParams{
 		Key:    "xraytest",
-		Domain: "dnslogxx.top",
-		ApiUrl: "http://x.x.x.x:8777",
+		Domain: "dnslogus.top",
+		ApiUrl: "http://107.175.0.202:8777/",
 	})
 	if err != nil {
 		fmt.Println(err.Error())
+		return
+	}
+
+	b := oob.IsVaild()
+	if b {
+		fmt.Println("Xray IsVaild: ", b)
+	} else {
+		fmt.Println("Xray IsVaild: ", b)
 		return
 	}
 

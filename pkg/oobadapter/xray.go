@@ -149,8 +149,7 @@ func (c *XrayConnector) validate(params ValidateParams) Result {
 	if status != 0 {
 		if params.FilterType == OOBHTTP {
 			// fmt.Println("OOBHTTP : ", getXrayHttpSuffix(c.XrayHTTPUrl)+"/"+params.Filter)
-			// if strings.Contains(strings.ToLower(string(body)), strings.ToLower(getXrayHttpSuffix(c.XrayHTTPUrl)+"/"+params.Filter)) {
-			if strings.Contains(strings.ToLower(string(body)), strings.ToLower("/"+params.Filter)) {
+			if strings.Contains(strings.ToLower(string(body)), strings.ToLower(getXrayHttpSuffix(c.XrayHTTPUrl)+"/"+params.Filter)) {
 				return Result{
 					IsVaild:    true,
 					DnslogType: AlphalogName,
@@ -161,8 +160,7 @@ func (c *XrayConnector) validate(params ValidateParams) Result {
 		}
 		if params.FilterType == OOBDNS {
 			// fmt.Println("OOBDNS : ", c.XrayDNSFilter+"."+params.Filter)
-			// if strings.Contains(strings.ToLower(string(body)), strings.ToLower(c.XrayDNSFilter+"."+params.Filter)) {
-			if strings.Contains(strings.ToLower(string(body)), strings.ToLower(c.XrayDNSFilter+".")) {
+			if strings.Contains(strings.ToLower(string(body)), strings.ToLower(c.XrayDNSFilter+"."+params.Filter)) {
 				return Result{
 					IsVaild:    true,
 					DnslogType: AlphalogName,

@@ -39,10 +39,11 @@ func main() {
 	// 获取验证结果
 	result := oob.ValidateResult(oobadapter.ValidateParams{
 		Filter:     domains.Filter,
-		FilterType: oobadapter.OOBDNS,
+		FilterType: oobadapter.OOBHTTP,
 	})
 
 	fmt.Println("GetResult: ", result.IsVaild, result.FilterType, result.Body)
+	return
 
 	//----------------------------------------
 

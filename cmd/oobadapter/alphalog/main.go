@@ -27,7 +27,6 @@ func main() {
 		fmt.Println("Alphalog IsVaild: ", b)
 		return
 	}
-	return
 
 	// 获取验证域名
 	domains := oob.GetValidationDomain()

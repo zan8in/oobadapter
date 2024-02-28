@@ -59,6 +59,7 @@ func (c *CeyeConnector) ValidateResult(params ValidateParams) Result {
 func (c *CeyeConnector) validate(params ValidateParams) Result {
 	url := fmt.Sprintf("http://api.ceye.io/v1/records?token=%s&type=%s&filter=%s", c.Token, c.GetFilterType(params.FilterType), params.Filter)
 	status, body := retryhttp.Get(url)
+	fmt.Println("Validate URL: ", url)
 	fmt.Println("Validate : ", status, string(body))
 	if status != 0 {
 		if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter)) {
@@ -79,6 +80,7 @@ func (c *CeyeConnector) validate(params ValidateParams) Result {
 }
 
 func (c *CeyeConnector) IsVaild() bool {
+	fmt.Println("IsVaild URL: ", fmt.Sprintf("http://%s.%s", randutil.Randcase(6), c.Domain))
 	if status, body := retryhttp.Get(fmt.Sprintf("http://%s.%s", randutil.Randcase(6), c.Domain)); status == 0 {
 		fmt.Println("IsVaild : ", status, string(body))
 		return false

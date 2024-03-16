@@ -85,7 +85,7 @@ func (c *CeyeConnector) IsVaild() bool {
 		// fmt.Println("IsVaild : ", status, string(body))
 		return false
 	} else {
-		fmt.Println("IsVaild : ", status, string(body))
+		// fmt.Println("IsVaild : ", status, string(body))
 		if strings.Contains(string(body), "\"meta\":") || strings.Contains(string(body), "201") {
 			return true
 		}

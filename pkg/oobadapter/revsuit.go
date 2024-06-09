@@ -90,7 +90,7 @@ func (c *RevsuitConnector) validate(params ValidateParams) Result {
 	status, body := retryhttp.GetByCookie(url, cookie)
 	if status != 0 {
 		if params.FilterType == OOBHTTP {
-			if strings.Contains(strings.ToLower(string(body)), strings.ToLower("/log/"+c.Filter)) {
+			if strings.Contains(strings.ToLower(string(body)), strings.ToLower("/log/"+params.Filter)) {
 				return Result{
 					IsVaild:    true,
 					DnslogType: RevsuitName,
@@ -100,7 +100,7 @@ func (c *RevsuitConnector) validate(params ValidateParams) Result {
 			}
 		}
 		if params.FilterType == OOBDNS {
-			if strings.Contains(strings.ToLower(string(body)), strings.ToLower(c.Filter+".log")) {
+			if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter+".log")) {
 				return Result{
 					IsVaild:    true,
 					DnslogType: RevsuitName,

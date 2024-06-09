@@ -42,11 +42,11 @@ func NewRevsuitConnector(params *ConnectorParams) (*RevsuitConnector, error) {
 }
 
 func (c *RevsuitConnector) GetValidationDomain() ValidationDomains {
-	fmt.Println("revsuit: ", c.HTTPUrl)
+	randomFilter := randutil.Randcase(RevsuitSubLength)
 	validationDomain := ValidationDomains{
-		HTTP:   fmt.Sprintf("%s/%s", strings.TrimSuffix(c.HTTPUrl, "/"), c.Filter), // http://x.x.x.x:8777/log/randstr
-		DNS:    fmt.Sprintf("%s.%s", c.Filter, c.DnsDomain),                        // xxx.log.xxx.net
-		Filter: c.Filter,
+		HTTP:   fmt.Sprintf("%s/%s", strings.TrimSuffix(c.HTTPUrl, "/"), randomFilter), // http://x.x.x.x:8777/log/randstr
+		DNS:    fmt.Sprintf("%s.%s", randomFilter, c.DnsDomain),                        // xxx.log.xxx.net
+		Filter: randomFilter,
 	}
 	return validationDomain
 }

@@ -11,7 +11,7 @@ import (
 
 func main() {
 	// 初始化 OOB 对象，设置 dnslog 配置
-	oob, err := oobadapter.NewOOBAdapter("recvsuit", &oobadapter.ConnectorParams{
+	oob, err := oobadapter.NewOOBAdapter("revsuit", &oobadapter.ConnectorParams{
 		Key:     "helploghelplog",
 		Domain:  "log.bastatic.com",
 		HTTPUrl: "http://141.98.212.54/log",

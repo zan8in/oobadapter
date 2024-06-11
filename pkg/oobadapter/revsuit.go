@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	RevsuitName      = "recvsuit"
+	RevsuitName      = "revsuit"
 	RevsuitDNS       = "dns"
 	RevsuitHTTP      = "http"
 	RevsuitSubLength = 8

@@ -27,6 +27,49 @@ type OOBAdapter struct {
 	DnsLogModel interface{}
 }
 
+func (o *OOBAdapter) Poll(filterType string) ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	res := o.ValidateResult(ValidateParams{
+		Filter:     "",
+		FilterType: filterType,
+	})
+	if res.Body == "" {
+		return nil, nil
+	}
+	return []byte(res.Body), nil
+}
+
+func (o *OOBAdapter) Match(body []byte, filterType string, filter string) bool {
+	if o == nil || len(body) == 0 || filter == "" {
+		return false
+	}
+
+	blob := strings.ToLower(string(body))
+	switch o.DnsLogType {
+	case CeyeName:
+		return strings.Contains(blob, strings.ToLower(filter+"."))
+	case DnslogcnName:
+		return strings.Contains(blob, strings.ToLower(filter))
+	case AlphalogName:
+		return strings.Contains(blob, strings.ToLower(filter))
+	case XrayName:
+		xray := o.DnsLogModel.(*XrayConnector)
+		if filterType == OOBHTTP {
+			return strings.Contains(blob, strings.ToLower(getXrayHttpSuffix(xray.XrayHTTPUrl)+"/"+filter))
+		}
+		return strings.Contains(blob, strings.ToLower(xray.XrayDNSFilter+"."+filter))
+	case RevsuitName:
+		if filterType == OOBHTTP {
+			return strings.Contains(blob, strings.ToLower("/log/"+filter))
+		}
+		return strings.Contains(blob, strings.ToLower(filter+".log"))
+	default:
+		return strings.Contains(blob, strings.ToLower(filter))
+	}
+}
+
 func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, error) {
 	if len(params.Domain) == 0 {
 		return nil, fmt.Errorf("new OOBAdapter failed, Domain is empty")

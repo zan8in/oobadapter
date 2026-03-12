@@ -154,7 +154,7 @@ func splitRevsuitRecords(body []byte) []Record {
 		out = append(out, Record{
 			Timestamp: at,
 			Raw:       raw,
-			Snippet:   guessSnippetFromMap(it, raw),
+			Snippet:   raw,
 			UniqueKey: guessUniqueFromMap(it),
 		})
 	}

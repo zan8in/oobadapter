@@ -43,7 +43,6 @@ func main() {
 	})
 
 	fmt.Println("GetResult: ", result.IsVaild, result.FilterType, result.Body)
-	return
 
 	//----------------------------------------
 

@@ -58,7 +58,7 @@ func (o *OOBAdapter) PollRecords(filterType string) ([]Record, error) {
 	if err != nil || len(body) == 0 {
 		return nil, err
 	}
-	return splitRecords(body), nil
+	return splitRecordsByType(body, o.DnsLogType), nil
 }
 
 func (o *OOBAdapter) Match(body []byte, filterType string, filter string) bool {
@@ -84,10 +84,81 @@ func (o *OOBAdapter) Match(body []byte, filterType string, filter string) bool {
 		if filterType == OOBHTTP {
 			return strings.Contains(blob, strings.ToLower("/log/"+filter))
 		}
-		return strings.Contains(blob, strings.ToLower(filter+".log"))
+		f := strings.ToLower(strings.TrimSpace(filter))
+		if f == "" {
+			return false
+		}
+		return strings.Contains(blob, `"`+"flag"+`":"`+f+`"`) ||
+			strings.Contains(blob, `"`+"flag"+`":"`+f+`.log"`) ||
+			strings.Contains(blob, f+".")
 	default:
 		return strings.Contains(blob, strings.ToLower(filter))
 	}
+}
+
+func splitRecordsByType(body []byte, dnsLogType string) []Record {
+	if dnsLogType == RevsuitName {
+		if recs := splitRevsuitRecords(body); len(recs) > 0 {
+			return recs
+		}
+	}
+	return splitRecords(body)
+}
+
+type revsuitPollResponse struct {
+	Error  any `json:"error"`
+	Result struct {
+		Count int              `json:"count"`
+		Data  []map[string]any `json:"data"`
+	} `json:"result"`
+	Status string `json:"status"`
+}
+
+func splitRevsuitRecords(body []byte) []Record {
+	s := strings.TrimSpace(string(body))
+	if s == "" || (!strings.HasPrefix(s, "{") && !strings.HasPrefix(s, "[")) {
+		return nil
+	}
+	resp := revsuitPollResponse{}
+	if err := json.Unmarshal([]byte(s), &resp); err != nil {
+		return nil
+	}
+	if len(resp.Result.Data) == 0 {
+		return nil
+	}
+	out := make([]Record, 0, len(resp.Result.Data))
+	for _, it := range resp.Result.Data {
+		if it == nil {
+			continue
+		}
+
+		w := revsuitPollResponse{
+			Error:  resp.Error,
+			Status: resp.Status,
+		}
+		w.Result.Count = 1
+		w.Result.Data = []map[string]any{it}
+		rawBytes, err := json.Marshal(w)
+		if err != nil {
+			continue
+		}
+
+		at := guessTimeFromMap(it, time.Now().UTC())
+		if rt, ok := it["request_time"].(string); ok {
+			if ts, err := time.Parse(time.RFC3339Nano, strings.TrimSpace(rt)); err == nil {
+				at = ts.UTC()
+			}
+		}
+
+		raw := strings.TrimSpace(string(rawBytes))
+		out = append(out, Record{
+			Timestamp: at,
+			Raw:       raw,
+			Snippet:   guessSnippetFromMap(it, raw),
+			UniqueKey: guessUniqueFromMap(it),
+		})
+	}
+	return out
 }
 
 func splitRecords(body []byte) []Record {

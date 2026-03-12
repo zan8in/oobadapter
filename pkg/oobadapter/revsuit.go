@@ -1,6 +1,7 @@
 package oobadapter
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -89,29 +90,12 @@ func (c *RevsuitConnector) validate(params ValidateParams) Result {
 	}
 	status, body := retryhttp.GetByCookie(url, cookie)
 	if status != 0 {
-		if params.FilterType == OOBHTTP {
-			if strings.Contains(strings.ToLower(string(body)), strings.ToLower("/log/"+params.Filter)) {
-				return Result{
-					IsVaild:    true,
-					DnslogType: RevsuitName,
-					FilterType: params.FilterType,
-					Body:       string(body),
-				}
-			}
-		}
-		if params.FilterType == OOBDNS {
-			bodyLower := strings.ToLower(string(body))
-			filterLower := strings.ToLower(strings.TrimSpace(params.Filter))
-			domainLower := strings.ToLower(strings.TrimSpace(c.DnsDomain))
-			if filterLower != "" && (strings.Contains(bodyLower, `"`+"flag"+`":"`+filterLower+`"`) ||
-				(domainLower != "" && strings.Contains(bodyLower, filterLower+"."+domainLower)) ||
-				strings.Contains(bodyLower, filterLower+".")) {
-				return Result{
-					IsVaild:    true,
-					DnslogType: RevsuitName,
-					FilterType: params.FilterType,
-					Body:       string(body),
-				}
+		if matched, filteredBody := filterRevsuitBody(params.FilterType, c.DnsDomain, params.Filter, body); matched {
+			return Result{
+				IsVaild:    true,
+				DnslogType: RevsuitName,
+				FilterType: params.FilterType,
+				Body:       filteredBody,
 			}
 		}
 	}
@@ -121,6 +105,113 @@ func (c *RevsuitConnector) validate(params ValidateParams) Result {
 		FilterType: params.FilterType,
 		Body:       string(body),
 	}
+}
+
+type revsuitAPIResponse struct {
+	Error  any `json:"error"`
+	Result struct {
+		Count int              `json:"count"`
+		Data  []map[string]any `json:"data"`
+	} `json:"result"`
+	Status string `json:"status"`
+}
+
+func filterRevsuitBody(filterType, dnsDomain, filter string, body []byte) (bool, string) {
+	filterLower := strings.ToLower(strings.TrimSpace(filter))
+	if filterLower == "" || len(body) == 0 {
+		return false, string(body)
+	}
+
+	resp := revsuitAPIResponse{}
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return filterRevsuitBodyFallback(filterType, dnsDomain, filterLower, body)
+	}
+
+	domainLower := strings.ToLower(strings.TrimSpace(dnsDomain))
+	matched := false
+	out := make([]map[string]any, 0, len(resp.Result.Data))
+	for _, it := range resp.Result.Data {
+		if it == nil {
+			continue
+		}
+		if matchRevsuitRecord(filterType, domainLower, filterLower, it) {
+			matched = true
+			out = append(out, it)
+		}
+	}
+	if !matched {
+		return false, string(body)
+	}
+
+	resp.Result.Data = out
+	resp.Result.Count = len(out)
+	b, err := json.Marshal(resp)
+	if err != nil {
+		return true, string(body)
+	}
+	return true, string(b)
+}
+
+func filterRevsuitBodyFallback(filterType, dnsDomainLower, filterLower string, body []byte) (bool, string) {
+	bodyLower := strings.ToLower(string(body))
+	switch filterType {
+	case OOBHTTP:
+		if strings.Contains(bodyLower, "/log/"+filterLower) {
+			return true, string(body)
+		}
+	case OOBDNS:
+		domainLower := strings.ToLower(strings.TrimSpace(dnsDomainLower))
+		if strings.Contains(bodyLower, `"`+"flag"+`":"`+filterLower+`"`) ||
+			(domainLower != "" && strings.Contains(bodyLower, filterLower+"."+domainLower)) ||
+			strings.Contains(bodyLower, filterLower+".") {
+			return true, string(body)
+		}
+	}
+	return false, string(body)
+}
+
+func matchRevsuitRecord(filterType, dnsDomainLower, filterLower string, it map[string]any) bool {
+	switch filterType {
+	case OOBHTTP:
+		uri := strings.ToLower(strings.TrimSpace(stringAny(it["uri"])))
+		flag := strings.ToLower(strings.TrimSpace(stringAny(it["flag"])))
+		token := "/log/" + filterLower
+		return strings.Contains(uri, token) || strings.Contains(flag, token)
+	case OOBDNS:
+		domain := strings.ToLower(strings.TrimSpace(stringAny(it["domain"])))
+		flag := strings.ToLower(strings.TrimSpace(stringAny(it["flag"])))
+		if dnsDomainLower != "" && domain != "" && !strings.HasSuffix(domain, dnsDomainLower) {
+			return false
+		}
+		if hasTokenSegment(flag, filterLower) {
+			return true
+		}
+		return hasTokenSegment(domain, filterLower)
+	default:
+		return false
+	}
+}
+
+func stringAny(v any) string {
+	switch t := v.(type) {
+	case string:
+		return t
+	default:
+		return fmt.Sprint(v)
+	}
+}
+
+func hasTokenSegment(s, token string) bool {
+	if s == "" || token == "" {
+		return false
+	}
+	parts := strings.Split(s, ".")
+	for _, p := range parts {
+		if p == token {
+			return true
+		}
+	}
+	return strings.HasPrefix(s, token+".") || strings.Contains(s, "."+token+".")
 }
 
 func (c *RevsuitConnector) IsVaild() bool {

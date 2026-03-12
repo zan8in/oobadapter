@@ -100,7 +100,12 @@ func (c *RevsuitConnector) validate(params ValidateParams) Result {
 			}
 		}
 		if params.FilterType == OOBDNS {
-			if strings.Contains(strings.ToLower(string(body)), strings.ToLower(params.Filter+".log")) {
+			bodyLower := strings.ToLower(string(body))
+			filterLower := strings.ToLower(strings.TrimSpace(params.Filter))
+			domainLower := strings.ToLower(strings.TrimSpace(c.DnsDomain))
+			if filterLower != "" && (strings.Contains(bodyLower, `"`+"flag"+`":"`+filterLower+`"`) ||
+				(domainLower != "" && strings.Contains(bodyLower, filterLower+"."+domainLower)) ||
+				strings.Contains(bodyLower, filterLower+".")) {
 				return Result{
 					IsVaild:    true,
 					DnslogType: RevsuitName,

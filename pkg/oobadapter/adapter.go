@@ -91,6 +91,18 @@ func (o *OOBAdapter) Match(body []byte, filterType string, filter string) bool {
 		return strings.Contains(blob, `"`+"flag"+`":"`+f+`"`) ||
 			strings.Contains(blob, `"`+"flag"+`":"`+f+`.log"`) ||
 			strings.Contains(blob, f+".")
+	case InteractshName:
+		f := strings.ToLower(strings.TrimSpace(filter))
+		if f == "" {
+			return false
+		}
+		if filterType == OOBDNS {
+			return strings.Contains(blob, f) && strings.Contains(blob, `"`+"protocol"+`":"dns"`)
+		}
+		if filterType == OOBHTTP {
+			return strings.Contains(blob, f) && (strings.Contains(blob, `"`+"protocol"+`":"http"`) || strings.Contains(blob, `"`+"protocol"+`":"https"`))
+		}
+		return strings.Contains(blob, f)
 	default:
 		return strings.Contains(blob, strings.ToLower(filter))
 	}
@@ -322,7 +334,7 @@ func guessTimeFromMap(m map[string]any, fallback time.Time) time.Time {
 }
 
 func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, error) {
-	if len(params.Domain) == 0 {
+	if dnslogType != InteractshName && len(params.Domain) == 0 {
 		return nil, fmt.Errorf("new OOBAdapter failed, Domain is empty")
 	}
 	if len(params.ApiUrl) == 0 {
@@ -398,6 +410,19 @@ func NewOOBAdapter(dnslogType string, params *ConnectorParams) (*OOBAdapter, err
 			Params:      params,
 			DnsLogModel: revsuit,
 		}, nil
+	case InteractshName:
+		interactsh, err := NewInteractshConnector(&ConnectorParams{
+			Key:    params.Key,
+			Domain: params.Domain,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &OOBAdapter{
+			DnsLogType:  dnslogType,
+			Params:      params,
+			DnsLogModel: interactsh,
+		}, nil
 	default:
 		return nil, fmt.Errorf("new oobadapter failed")
 	}
@@ -415,6 +440,8 @@ func (o *OOBAdapter) GetValidationDomain() ValidationDomains {
 		return o.DnsLogModel.(*XrayConnector).GetValidationDomain()
 	case RevsuitName:
 		return o.DnsLogModel.(*RevsuitConnector).GetValidationDomain()
+	case InteractshName:
+		return o.DnsLogModel.(*InteractshConnector).GetValidationDomain()
 	default:
 		return ValidationDomains{}
 	}
@@ -437,6 +464,9 @@ func (o *OOBAdapter) ValidateResult(params ValidateParams) Result {
 	case RevsuitName:
 		revsuit := o.DnsLogModel.(*RevsuitConnector)
 		return revsuit.ValidateResult(params)
+	case InteractshName:
+		interactsh := o.DnsLogModel.(*InteractshConnector)
+		return interactsh.ValidateResult(params)
 	default:
 		return Result{
 			IsVaild:    false,
@@ -459,6 +489,8 @@ func (o *OOBAdapter) IsVaild() bool {
 		return o.DnsLogModel.(*XrayConnector).IsVaild()
 	case RevsuitName:
 		return o.DnsLogModel.(*RevsuitConnector).IsVaild()
+	case InteractshName:
+		return o.DnsLogModel.(*InteractshConnector).IsVaild()
 	default:
 		return false
 	}
